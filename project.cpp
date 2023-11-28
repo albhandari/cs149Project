@@ -126,18 +126,24 @@ bool createProgram(const string &filename, vector<Instruction> &program) {
 void set(int value) {
     // TODO: Implement
     // 1. Set the CPU value to the passed-in value.
+
+    cpu.value = value;
 }
 
 // Implements the A operation.
 void add(int value) {
     // TODO: Implement
     // 1. Add the passed-in value to the CPU value.
+
+    cpu.value += value;
 }
 
 // Implements the D operation.
 void decrement(int value) {
     // TODO: Implement
     // 1. Subtract the integer value from the CPU value.
+
+    cpu.value -= value;
 }
 
 // Performs scheduling.
@@ -145,11 +151,35 @@ void schedule() {
     // TODO: Implement
     // 1. Return if there is still a processing running (runningState != -1). 
     //    There is no need to schedule if a process is already running (at least until iLab 3)
+    if(runningState != -1){
+        return;
+    }
+
     // 2. Get a new process to run, if possible, from the ready queue.
-    // 3. If we were able to get a new process to run:
-    //    a. Mark the processing as running (update the new process's PCB state)
-    //    b. Update the CPU structure with the PCB entry details (program, program counter,
-    //       value, etc.)
+    if(!readyState.empty()){
+        int nextProcess = readyState.front();
+        readyState.pop_front();
+
+        // 3. If we were able to get a new process to run:
+        //    a. Mark the processing as running (update the new process's PCB state)
+        pcbEntry[nextProcess].state = STATE_RUNNING;
+
+        //    b. Update the CPU structure with the PCB entry details (program, program counter,
+        //       value, etc.)
+
+        cpu.pProgram = &pcbEntry[nextProcess].program;
+        cpu.programCounter = pcbEntry[nextProcess].programCounter;
+        cpu.value = pcbEntry[nextProcess].value;
+        cpu.timeSlice = 0; //NEEDS TO BE WORKED ON
+        cpu.timeSliceUsed = 0; //NEEDS TO BE WORKED ON
+
+        runningState = nextProcess; //runningState updates to index of current process
+
+    }
+
+    
+
+
 }
 
 // Implements the B operation.
