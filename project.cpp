@@ -281,10 +281,17 @@ void quantum() {
 // Implements the U command.
 void unblock() {
     // 1. If the blocked queue contains any processes:
+    if(!blockedState.empty()){
+        int nextProcess = blockedState.front();
     // a. Remove a process from the front of the blocked queue.
+        blockedState.pop_front();
     // b. Add the process to the ready queue.
+        readyState.push(nextProcess);
     // c. Change the state of the process to ready (update its PCB entry).
+        pcbEntry[nextProcess].state = STATE_READY;
     // 2. Call the schedule() function to give an unblocked process a chance to run (if possible).
+        schedule();
+    }
 }
 
 // Implements the P command.
