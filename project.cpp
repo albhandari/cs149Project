@@ -186,11 +186,16 @@ void schedule() {
 void block() {
     // TODO: Implement
     // 1. Add the PCB index of the running process (stored in runningState) to the blocked queue.
+    blockedState.push_back(runningState);
     // 2. Update the process's PCB entry
     //    a. Change the PCB's state to blocked.
+    pcbEntry[runningState].state = STATE_BLOCKED;
     //    b. Store the CPU program counter in the PCB's program counter.
+    pcbEntry[runningState].programCounter = cpu.programCounter;
     //    c. Store the CPU's value in the PCB's value.
+    pcbEntry[runningState].value = cpu.value;
     // 3. Update the running state to -1 (basically mark no process as running). 
+    runningState = -1;
     //    Note that a new process will be chosen to run later (via the Q command code calling the schedule() function).
 }
 
@@ -286,7 +291,7 @@ void unblock() {
     // a. Remove a process from the front of the blocked queue.
         blockedState.pop_front();
     // b. Add the process to the ready queue.
-        readyState.push(nextProcess);
+        readyState.push_back(nextProcess);
     // c. Change the state of the process to ready (update its PCB entry).
         pcbEntry[nextProcess].state = STATE_READY;
     // 2. Call the schedule() function to give an unblocked process a chance to run (if possible).
