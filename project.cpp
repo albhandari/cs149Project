@@ -232,10 +232,13 @@ void fork(int value) {
 void replace(string &argument) {
     // TODO: Implement
     // 1. Clear the CPU's program (cpu.pProgram->clear()).
+    cpu.pProgram->clear();
     // 2. Use createProgram() to read in the filename specified by argument into the CPU (*cpu.pProgram)
+    createProgram(&argument, *cpu.pProgram);
     //    a. Consider what to do if createProgram fails. I printed an error, incremented the cpu program 
     //       counter and then returned. Note that createProgram can fail if the file could not be opened or did not exist.
     // 3. Set the program counter to 0.
+    cpu.programCounter = 0;
 }
 
 // Implements the Q command.
