@@ -202,22 +202,56 @@ void block() {
 // Implements the E operation.
 void end() {
     // TODO: Implement
+    if(runningState != -1){
+
     // 1. Get the PCB entry of the running process.
+    PcbEntry& runningProc = pcbEntry[runningState];
+
     // 2. Update the cumulative time difference (increment it by timestamp + 1 - start time of the process).
+   cumulativeTimeDiff += (timeStamp + 1 - runningProc.startTIme);
+
     // 3. Increment the number of terminated processes.
-    // 4. Update the running state to -1 (basically mark no process as running). 
+    numTerminatedProcesses++;
+
+    // 4. Update the running state to -1 (basically mark no process as running).
     //    Note that a new process will be chosen to run later (via the Q command code calling the schedule function).
+   runningState = -1;
+
+   schedule();
+}
 }
 
 // Implements the F operation.
 void fork(int value) {
     // TODO: Implement
     // 1. Get a free PCB index (pcbTable.size())
+     int freeIndx = 0;
+    for(int i =0; i < 10;i++){
+        if(pcbEntry[i].processId == -1){
+                freeIndx = i;
+                break;
+        }
+    }
+
     // 2. Get the PCB entry for the current running process.
+    PcbEntry& parentProcess = pcbEntry[runningState];
+
+
     // 3. Ensure the passed-in value is not out of bounds.
+
+    for(freeIndx != -1 && value >=0 && value < parentProcess.program.size()){
+        PcbEntry& childProc = pcbEntry[freeIndx];
+        childProc.processId = freeIndx;
+        childProcess.parentProcessId = parentProcess.processID;
+        childProcess.program = parentProcess.program;
+        childProcess.value = parentProcess.value;
+        childProcess.priority = parentProcess.priority;
+        childProcess.state = STATE_READY;
+        childProcess.startTime = timestamp;
+    }
     // 4. Populate the PCB entry obtained in #1
     //    a. Set the process ID to the PCB index obtained in #1.
-    //    b. Set the parent process ID to the process ID of the running process 
+    //    b. Set the parent process ID to the process ID of the running process
     //       (use the running process's PCB entry to get this).
     //    c. Set the program counter to the cpu program counter.
     //    d. Set the value to the cpu value.
@@ -225,7 +259,11 @@ void fork(int value) {
     //    f. Set the state to the ready state.
     //    g. Set the start time to the current timestamp
     // 5. Add the pcb index to the ready queue.
+
+    readyState.push_back(freeIndx);
+
     // 6. Increment the cpu's program counter by the value read in #3
+    cpu.programCounter += value;
 }
 
 // Implements the R operation.
