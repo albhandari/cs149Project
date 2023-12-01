@@ -234,7 +234,7 @@ void replace(string &argument) {
     // 1. Clear the CPU's program (cpu.pProgram->clear()).
     cpu.pProgram->clear();
     // 2. Use createProgram() to read in the filename specified by argument into the CPU (*cpu.pProgram)
-    createProgram(argument, *cpu.pProgram);
+    createProgram(argument, cpu.pProgram);
     //    a. Consider what to do if createProgram fails. I printed an error, incremented the cpu program 
     //       counter and then returned. Note that createProgram can fail if the file could not be opened or did not exist.
     // 3. Set the program counter to 0.
@@ -364,7 +364,9 @@ int main(int argc, char *argv[]) {
     int result;
 
     // TODO: Create a pipe
-    pipe(pipeDescriptors);
+    if(pipe(pipeDescriptors) == -1) {
+        return 1;
+    }
 
     // USE fork() SYSTEM CALL to create the child process and save the value returned in processMgrPid variable
     if ((processMgrPid = fork()) == -1) exit(1); // FORK FAILED
