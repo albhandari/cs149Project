@@ -208,7 +208,7 @@ void end() {
     PcbEntry& runningProc = pcbEntry[runningState];
 
     // 2. Update the cumulative time difference (increment it by timestamp + 1 - start time of the process).
-   cumulativeTimeDiff += (timeStamp + 1 - runningProc.startTIme);
+   cumulativeTimeDiff += (timestamp + 1 - runningProc.startTime);
 
     // 3. Increment the number of terminated processes.
     numTerminatedProcesses++;
@@ -225,7 +225,7 @@ void end() {
 void fork(int value) {
     // TODO: Implement
     // 1. Get a free PCB index (pcbTable.size())
-     int freeIndx = 0;
+     int freeIndx = -1;
     for(int i =0; i < 10;i++){
         if(pcbEntry[i].processId == -1){
                 freeIndx = i;
@@ -239,15 +239,15 @@ void fork(int value) {
 
     // 3. Ensure the passed-in value is not out of bounds.
 
-    for(freeIndx != -1 && value >=0 && value < parentProcess.program.size()){
+    if(freeIndx != -1 && (value >=0 && value < parentProcess.program.size()) ){
         PcbEntry& childProc = pcbEntry[freeIndx];
         childProc.processId = freeIndx;
-        childProcess.parentProcessId = parentProcess.processID;
-        childProcess.program = parentProcess.program;
-        childProcess.value = parentProcess.value;
-        childProcess.priority = parentProcess.priority;
-        childProcess.state = STATE_READY;
-        childProcess.startTime = timestamp;
+        childProc.parentProcessId = parentProcess.processId;
+        childProc.program = parentProcess.program;
+        childProc.value = parentProcess.value;
+        childProc.priority = parentProcess.priority;
+        childProc.state = STATE_READY;
+        childProc.startTime = timestamp;
     }
     // 4. Populate the PCB entry obtained in #1
     //    a. Set the process ID to the PCB index obtained in #1.
@@ -266,18 +266,20 @@ void fork(int value) {
     cpu.programCounter += value;
 }
 
+
 // Implements the R operation.
 void replace(string &argument) {
     // TODO: Implement
     // 1. Clear the CPU's program (cpu.pProgram->clear()).
     cpu.pProgram->clear();
     // 2. Use createProgram() to read in the filename specified by argument into the CPU (*cpu.pProgram)
-    createProgram(argument, cpu.pProgram);
+    createProgram(argument,*(cpu.pProgram));
     //    a. Consider what to do if createProgram fails. I printed an error, incremented the cpu program 
     //       counter and then returned. Note that createProgram can fail if the file could not be opened or did not exist.
     // 3. Set the program counter to 0.
     cpu.programCounter = 0;
 }
+
 
 // Implements the Q command.
 void quantum() {
