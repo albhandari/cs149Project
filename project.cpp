@@ -167,6 +167,7 @@ void schedule() {
         // 3. If we were able to get a new process to run:
         //    a. Mark the processing as running (update the new process's PCB state)
         pcbEntry[nextProcess].state = STATE_RUNNING;
+        pcbEntry[nextProcess].timeUsed += 1;
 
         //    b. Update the CPU structure with the PCB entry details (program, program counter,
         //       value, etc.)
@@ -188,19 +189,22 @@ void schedule() {
 
 // Implements the B operation.
 void block() {
-    // TODO: Implement
-    // 1. Add the PCB index of the running process (stored in runningState) to the blocked queue.
-    blockedState.push_back(runningState);
-    // 2. Update the process's PCB entry
-    //    a. Change the PCB's state to blocked.
-    pcbEntry[runningState].state = STATE_BLOCKED;
-    //    b. Store the CPU program counter in the PCB's program counter.
-    pcbEntry[runningState].programCounter = cpu.programCounter;
-    //    c. Store the CPU's value in the PCB's value.
-    pcbEntry[runningState].value = cpu.value;
-    // 3. Update the running state to -1 (basically mark no process as running). 
-    runningState = -1;
+    if(runningState != 1){
+        // TODO: Implement
+        // 1. Add the PCB index of the running process (stored in runningState) to the blocked queue.
+        blockedState.push_back(runningState);
+        // 2. Update the process's PCB entry
+        //    a. Change the PCB's state to blocked.
+        pcbEntry[runningState].state = STATE_BLOCKED;
+        //    b. Store the CPU program counter in the PCB's program counter.
+        pcbEntry[runningState].programCounter = cpu.programCounter;
+         //    c. Store the CPU's value in the PCB's value.
+        pcbEntry[runningState].value = cpu.value;
+        // 3. Update the running state to -1 (basically mark no process as running). 
+        runningState = -1;
     //    Note that a new process will be chosen to run later (via the Q command code calling the schedule() function).
+    }
+
 }
 
 // Implements the E operation.
@@ -208,32 +212,32 @@ void end() {
     // TODO: Implement
     if(runningState != -1){
 
-    // 1. Get the PCB entry of the running process.
-    PcbEntry& runningProc = pcbEntry[runningState];
+        // 1. Get the PCB entry of the running process.
+        PcbEntry& runningProc = pcbEntry[runningState];
 
-    // 2. Update the cumulative time difference (increment it by timestamp + 1 - start time of the process).
-   cumulativeTimeDiff += (timestamp + 1 - runningProc.startTime);
+        // 2. Update the cumulative time difference (increment it by timestamp + 1 - start time of the process).
+        cumulativeTimeDiff += (timestamp + 1 - runningProc.startTime);
 
-    // 3. Increment the number of terminated processes.
-    numTerminatedProcesses++;
+        // 3. Increment the number of terminated processes.
+        numTerminatedProcesses++;
 
-    // 4. Update the running state to -1 (basically mark no process as running).
-    //    Note that a new process will be chosen to run later (via the Q command code calling the schedule function).
-   runningState = -1;
+        // 4. Update the running state to -1 (basically mark no process as running).
+        //    Note that a new process will be chosen to run later (via the Q command code calling the schedule function).
+        runningState = -1;
 
-   schedule();
-}
+        //schedule(); //*
+    }
 }
 
 // Implements the F operation.
 void fork(int value) {
     // TODO: Implement
     // 1. Get a free PCB index (pcbTable.size())
-     int freeIndx = -1;
+    int freeIndx = -1;
     for(int i =0; i < 10;i++){
         if(pcbEntry[i].processId == -1){
-                freeIndx = i;
-                break;
+            freeIndx = i;
+            break;
         }
     }
 
@@ -267,7 +271,7 @@ void fork(int value) {
     readyState.push_back(freeIndx);
 
     // 6. Increment the cpu's program counter by the value read in #3
-    cpu.programCounter += value;
+    cpu.programCounter += value +1; //*
 }
 
 // Implements the R operation.
@@ -386,10 +390,14 @@ int runProcessManager(int fileDescriptor) {
                 quantum();
                 break;
             case 'U':
-                cout << "You entered U" << endl;
+                //cout << "You entered U" << endl;
+                unblock();
                 break;
             case 'P':
-                cout << "You entered P" << endl;
+                //cout << "You entered P" << endl;
+                print();
+                break;
+            case 'T':
                 break;
             default:
                 cout << "You entered an invalid character!" << endl;
