@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include <cctype> // for toupper()
 #include <cstdlib> // for EXIT_SUCCESS and EXIT_FAILURE
 #include <cstring> // for strerror()
@@ -10,6 +11,7 @@
 #include <unistd.h> // for pipe(), read(), write(), close(), fork(), and _exit()
 #include <vector> // for vector (used for PCB table)
 using namespace std;
+using namespace boost::algorithm;
 
 class Instruction {
 public:
@@ -77,7 +79,9 @@ bool createProgram(const string &filename, vector<Instruction> &program) {
         if (line.size() > 0) {
             Instruction instruction;
             instruction.operation = toupper(line[0]);
-            instruction.stringArg = trim(line.erase(0, 1));
+	    line.erase(0,1);
+            trim(line);
+	    instruction.stringArg = line;
             stringstream argStream(instruction.stringArg);
             switch (instruction.operation) {
                 case 'S': // Integer argument.
@@ -266,7 +270,6 @@ void fork(int value) {
     cpu.programCounter += value;
 }
 
-
 // Implements the R operation.
 void replace(string &argument) {
     // TODO: Implement
@@ -279,7 +282,6 @@ void replace(string &argument) {
     // 3. Set the program counter to 0.
     cpu.programCounter = 0;
 }
-
 
 // Implements the Q command.
 void quantum() {
@@ -351,7 +353,7 @@ void print() {
 int runProcessManager(int fileDescriptor) {
     // vector<PcbEntry> pcbTable;
     // Attempt to create the init process.
-    if (!createProgram("init", pcbEntry[0].program)) {
+    if (!createProgram("file.txt", pcbEntry[0].program)) {
         return EXIT_FAILURE;
     }
     pcbEntry[0].processId = 0;
@@ -405,16 +407,18 @@ int main(int argc, char *argv[]) {
 
     // TODO: Create a pipe
     if(pipe(pipeDescriptors) == -1) {
-        return 1;
+    	
+	    return 1;
     }
 
     // USE fork() SYSTEM CALL to create the child process and save the value returned in processMgrPid variable
-    if ((processMgrPid = fork()) == -1) exit(1); // FORK FAILED
-
+    if ((processMgrPid = fork()) == -1){
+	    exit(1); // FORK FAILED
+    }
     if (processMgrPid == 0) {
         // The process manager process is running.
         // Close the unused write end of the pipe for the process manager process.
-        close(pipeDescriptors[1]);
+	 close(pipeDescriptors[1]);
 
         // Run the process manager.
         result = runProcessManager(pipeDescriptors[0]);
