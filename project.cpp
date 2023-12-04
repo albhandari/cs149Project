@@ -200,7 +200,7 @@ void schedule() {
 
 // Implements the B operation.
 void block() {
-    if(runningState != 1){
+    if(runningState != -1){
         // TODO: Implement
         // 1. Add the PCB index of the running process (stored in runningState) to the blocked queue.
         blockedState.push_back(runningState);
