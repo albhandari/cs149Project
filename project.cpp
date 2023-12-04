@@ -150,14 +150,26 @@ void decrement(int value) {
     cpu.value -= value;
 }
 
-// Performs scheduling.
 void schedule() {
+
+     const int fixedTSlice = 5;
     // TODO: Implement
     // 1. Return if there is still a processing running (runningState != -1). 
     //    There is no need to schedule if a process is already running (at least until iLab 3)
     if(runningState != -1){
-        return;
+        //change timeSliceUsed of current running process
+        cpu.timeSliceUsed++;
+
+            //if currently running process used all of its time slice as per round robin quantum,
+            //so now we continue and get a new process to run next time around.
+            if(cpu.timeSliceUsed >= fixedTSlice){
+                cpu.timeSliceUsed = 0;
+                runningState = -1;
+
+            }
+            return;
     }
+
 
     // 2. Get a new process to run, if possible, from the ready queue.
     if(!readyState.empty()){
@@ -175,17 +187,16 @@ void schedule() {
         cpu.pProgram = &pcbEntry[nextProcess].program;
         cpu.programCounter = pcbEntry[nextProcess].programCounter;
         cpu.value = pcbEntry[nextProcess].value;
-        cpu.timeSlice = 0; //NEEDS TO BE WORKED ON
+        cpu.timeSlice = fixedTSlice; //NEEDS TO BE WORKED ON
         cpu.timeSliceUsed = 0; //NEEDS TO BE WORKED ON
 
         runningState = nextProcess; //runningState updates to index of current process
 
     }
 
-    
-
-
 }
+
+
 
 // Implements the B operation.
 void block() {
