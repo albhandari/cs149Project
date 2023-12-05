@@ -150,26 +150,14 @@ void decrement(int value) {
     cpu.value -= value;
 }
 
+// Performs scheduling.
 void schedule() {
-
-     const int fixedTSlice = 5;
     // TODO: Implement
     // 1. Return if there is still a processing running (runningState != -1). 
     //    There is no need to schedule if a process is already running (at least until iLab 3)
     if(runningState != -1){
-        //change timeSliceUsed of current running process
-        cpu.timeSliceUsed++;
-
-            //if currently running process used all of its time slice as per round robin quantum,
-            //so now we continue and get a new process to run next time around.
-            if(cpu.timeSliceUsed >= fixedTSlice){
-                cpu.timeSliceUsed = 0;
-                runningState = -1;
-
-            }
-            return;
+        return;
     }
-
 
     // 2. Get a new process to run, if possible, from the ready queue.
     if(!readyState.empty()){
@@ -187,20 +175,21 @@ void schedule() {
         cpu.pProgram = &pcbEntry[nextProcess].program;
         cpu.programCounter = pcbEntry[nextProcess].programCounter;
         cpu.value = pcbEntry[nextProcess].value;
-        cpu.timeSlice = fixedTSlice; //NEEDS TO BE WORKED ON
+        cpu.timeSlice = 0; //NEEDS TO BE WORKED ON
         cpu.timeSliceUsed = 0; //NEEDS TO BE WORKED ON
 
         runningState = nextProcess; //runningState updates to index of current process
 
     }
 
+    
+
+
 }
-
-
 
 // Implements the B operation.
 void block() {
-    if(runningState != -1){
+    if(runningState != 1){
         // TODO: Implement
         // 1. Add the PCB index of the running process (stored in runningState) to the blocked queue.
         blockedState.push_back(runningState);
@@ -359,9 +348,73 @@ void unblock() {
     }
 }
 
+string stateConverter(State state){
+    if(state == STATE_READY){
+        return "Ready State";
+    }
+    else if (state == STATE_RUNNING)
+    {
+        return "Running State";
+    }
+    else if (state == STATE_BLOCKED)
+    {
+        return "Blocked State";
+    }
+    else{
+        return "Unknown State";
+    }
+    
+    
+}
+
 // Implements the P command.
 void print() {
-    cout << "Print command is not implemented until iLab 3" << endl;
+    cout << "" <<endl;
+    cout << "***************************************************" << endl;
+    cout << "Current system state is as follows: \n";
+    if (runningState != -1) {
+        cout << "Current Running State: " << to_string(runningState) << endl;
+    } 
+    else {
+        cout << "No State Running" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+
+    cout << "Process in Ready Queue" << endl;
+    for(int item: readyState){
+        cout <<"ID: "<< item <<endl;
+    }
+
+    cout << "-------------------------------" << endl;
+
+    cout << "Process in Blocked Queue" << endl;
+    for(int item: blockedState){
+        cout <<"ID: "<< item <<endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "Process Table" << endl;
+    cout << "" <<endl;
+
+    for(const auto& eachProcess: pcbEntry){
+        if(eachProcess.processId >= 0){
+            cout << "Process ID: " << eachProcess.processId << endl;
+            cout << "Parent Process ID: " << eachProcess.parentProcessId << endl;
+            cout << "Process Program Counter: " << eachProcess.programCounter << endl;
+            cout << "Process Value: " << eachProcess.value << endl;
+            cout << "Process Priority: " << eachProcess.priority << endl;
+            cout << "Process State: " << stateConverter(eachProcess.state) << endl;
+            
+            cout << "Process Start: " << eachProcess.startTime << endl;
+            cout << "Process timeUsed: " << eachProcess.timeUsed << endl;
+            cout << "........................" << endl;
+        }
+    }
+
+    cout << "***************************************************" << endl;
+
+
 }
 
 // Function that implements the process manager.
@@ -401,11 +454,11 @@ int runProcessManager(int fileDescriptor) {
                 quantum();
                 break;
             case 'U':
-                //cout << "You entered U" << endl;
+                cout << "You entered U and ran unblock()" << endl;
                 unblock();
                 break;
             case 'P':
-                //cout << "You entered P" << endl;
+                cout << "You entered P and ran print()" << endl;
                 print();
                 break;
             case 'T':
