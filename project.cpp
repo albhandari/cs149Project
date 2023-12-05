@@ -79,9 +79,9 @@ bool createProgram(const string &filename, vector<Instruction> &program) {
         if (line.size() > 0) {
             Instruction instruction;
             instruction.operation = toupper(line[0]);
-	        line.erase(0,1);
+	    line.erase(0,1);
             trim(line);
-	        instruction.stringArg = line;
+	    instruction.stringArg = line;
             stringstream argStream(instruction.stringArg);
             switch (instruction.operation) {
                 case 'S': // Integer argument.
@@ -155,7 +155,10 @@ void schedule() {
     // TODO: Implement
     // 1. Return if there is still a processing running (runningState != -1). 
     //    There is no need to schedule if a process is already running (at least until iLab 3)
+    const int fixedTimeSlice = 5;
+
     if(runningState != -1){
+	cpu.timeSliceUsed++;
         return;
     }
 
@@ -175,7 +178,7 @@ void schedule() {
         cpu.pProgram = &pcbEntry[nextProcess].program;
         cpu.programCounter = pcbEntry[nextProcess].programCounter;
         cpu.value = pcbEntry[nextProcess].value;
-        cpu.timeSlice = 0; //NEEDS TO BE WORKED ON
+        cpu.timeSlice = fixedTimeSlice; //NEEDS TO BE WORKED ON
         cpu.timeSliceUsed = 0; //NEEDS TO BE WORKED ON
 
         runningState = nextProcess; //runningState updates to index of current process
@@ -231,7 +234,8 @@ void end() {
 
 // Implements the F operation.
 void fork(int value) {
-    // TODO: Implement
+    
+	// TODO: Implement
     // 1. Get a free PCB index (pcbTable.size())
     int freeIndx = -1;
     for(int i =0; i < 10;i++){
@@ -248,11 +252,12 @@ void fork(int value) {
     // 3. Ensure the passed-in value is not out of bounds.
 
     if(freeIndx != -1 && (value >=0 && value < parentProcess.program.size()) ){
-        PcbEntry& childProc = pcbEntry[freeIndx];
+       
+	PcbEntry& childProc = pcbEntry[freeIndx];
         childProc.processId = freeIndx;
         childProc.parentProcessId = parentProcess.processId;
         childProc.program = parentProcess.program;
-        childProc.value = cpu.value;
+        childProc.value = parentProcess.value;
         childProc.priority = parentProcess.priority;
         childProc.state = STATE_READY;
         childProc.startTime = timestamp;
@@ -306,15 +311,17 @@ void quantum() {
     switch (instruction.operation) {
         case 'S':
             set(instruction.intArg);
+	 
             cout << "instruction S " << instruction.intArg << endl;
             break;
         case 'A':
             add(instruction.intArg);
+
             cout << "instruction A " << instruction.intArg << endl;
             break;
         case 'D':
-            decrement(instruction.intArg);
-            break;
+	    decrement(instruction.intArg);
+	    break;
         case 'B':
             block();
             break;
@@ -322,7 +329,9 @@ void quantum() {
             end();
             break;
         case 'F':
+	    
             fork(instruction.intArg);
+	    
             break;
         case 'R':
             replace(instruction.stringArg);
@@ -425,7 +434,7 @@ int runProcessManager(int fileDescriptor) {
         return EXIT_FAILURE;
     }
 
-    pcbEntry[0].processId = -1;
+    pcbEntry[0].processId = 0;
     pcbEntry[0].parentProcessId = -1;
     pcbEntry[0].programCounter = 0;
     pcbEntry[0].value = 0;
@@ -434,17 +443,20 @@ int runProcessManager(int fileDescriptor) {
     pcbEntry[0].startTime = 0;
     pcbEntry[0].timeUsed = 0;
 
-    for(int i =1; i < 10;i++){
-        pcbEntry[i].processId = -1;
-        pcbEntry[i].parentProcessId = -1;
-        pcbEntry[i].programCounter = 0;
-        pcbEntry[i].value = 0;
-        pcbEntry[i].priority = 0;
-        pcbEntry[i].state = STATE_READY;
-        pcbEntry[i].startTime = 0;
-        pcbEntry[i].timeUsed = 0;
+
+    for(int i=1; i < 10; ++i){
+    pcbEntry[i].processId = -1;
+    pcbEntry[i].parentProcessId = -1;
+    pcbEntry[i].programCounter = 0;
+    pcbEntry[i].value = 0;
+    pcbEntry[i].priority = 0;
+    pcbEntry[i].state = STATE_READY;
+    pcbEntry[i].startTime = 0;
+    pcbEntry[i].timeUsed = 0;
+
     }
 
+   
     runningState = 0;
     cpu.pProgram = &(pcbEntry[0].program);
     cpu.programCounter = pcbEntry[0].programCounter;
@@ -503,7 +515,7 @@ int main(int argc, char *argv[]) {
     if (processMgrPid == 0) {
         // The process manager process is running.
         // Close the unused write end of the pipe for the process manager process.
-	    close(pipeDescriptors[1]);
+	 close(pipeDescriptors[1]);
 
         // Run the process manager.
         result = runProcessManager(pipeDescriptors[0]);
