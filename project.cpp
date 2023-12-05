@@ -257,7 +257,7 @@ void fork(int value) {
         childProc.processId = freeIndx;
         childProc.parentProcessId = parentProcess.processId;
         childProc.program = parentProcess.program;
-        childProc.value = parentProcess.value;
+        childProc.value = cpu.value;
         childProc.priority = parentProcess.priority;
         childProc.state = STATE_READY;
         childProc.startTime = timestamp;
