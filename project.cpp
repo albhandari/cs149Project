@@ -79,9 +79,9 @@ bool createProgram(const string &filename, vector<Instruction> &program) {
         if (line.size() > 0) {
             Instruction instruction;
             instruction.operation = toupper(line[0]);
-	    line.erase(0,1);
+	        line.erase(0,1);
             trim(line);
-	    instruction.stringArg = line;
+	        instruction.stringArg = line;
             stringstream argStream(instruction.stringArg);
             switch (instruction.operation) {
                 case 'S': // Integer argument.
@@ -252,7 +252,7 @@ void fork(int value) {
         childProc.processId = freeIndx;
         childProc.parentProcessId = parentProcess.processId;
         childProc.program = parentProcess.program;
-        childProc.value = parentProcess.value;
+        childProc.value = cpu.value;
         childProc.priority = parentProcess.priority;
         childProc.state = STATE_READY;
         childProc.startTime = timestamp;
@@ -424,7 +424,8 @@ int runProcessManager(int fileDescriptor) {
     if (!createProgram("file.txt", pcbEntry[0].program)) {
         return EXIT_FAILURE;
     }
-    pcbEntry[0].processId = 0;
+
+    pcbEntry[0].processId = -1;
     pcbEntry[0].parentProcessId = -1;
     pcbEntry[0].programCounter = 0;
     pcbEntry[0].value = 0;
@@ -432,6 +433,18 @@ int runProcessManager(int fileDescriptor) {
     pcbEntry[0].state = STATE_RUNNING;
     pcbEntry[0].startTime = 0;
     pcbEntry[0].timeUsed = 0;
+
+    for(int i =1; i < 10;i++){
+        pcbEntry[i].processId = -1;
+        pcbEntry[i].parentProcessId = -1;
+        pcbEntry[i].programCounter = 0;
+        pcbEntry[i].value = 0;
+        pcbEntry[i].priority = 0;
+        pcbEntry[i].state = STATE_READY;
+        pcbEntry[i].startTime = 0;
+        pcbEntry[i].timeUsed = 0;
+    }
+
     runningState = 0;
     cpu.pProgram = &(pcbEntry[0].program);
     cpu.programCounter = pcbEntry[0].programCounter;
@@ -490,7 +503,7 @@ int main(int argc, char *argv[]) {
     if (processMgrPid == 0) {
         // The process manager process is running.
         // Close the unused write end of the pipe for the process manager process.
-	 close(pipeDescriptors[1]);
+	    close(pipeDescriptors[1]);
 
         // Run the process manager.
         result = runProcessManager(pipeDescriptors[0]);
