@@ -79,9 +79,9 @@ bool createProgram(const string &filename, vector<Instruction> &program) {
         if (line.size() > 0) {
             Instruction instruction;
             instruction.operation = toupper(line[0]);
-	    line.erase(0,1);
+	        line.erase(0,1);
             trim(line);
-	    instruction.stringArg = line;
+	        instruction.stringArg = line;
             stringstream argStream(instruction.stringArg);
             switch (instruction.operation) {
                 case 'S': // Integer argument.
