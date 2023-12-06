@@ -487,6 +487,13 @@ int runProcessManager(int fileDescriptor) {
                 print();
                 break;
             case 'T':
+		if(numTerminatedProcesses > 0 ){
+			double aveTurnaroundT = cumulativeTimeDiff/numTerminatedProcesses;
+			cout << "Avg turnaround time: " << aveTurnaroundT <<endl;
+		}
+		else{
+			cout << "Nothing terminated" << endl;
+		}
                 break;
             default:
                 cout << "You entered an invalid character!" << endl;
